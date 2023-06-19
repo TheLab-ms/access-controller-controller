@@ -16,5 +16,4 @@ jobs:
           image: access-controller-controller
           registry: ghcr.io
           dockerfile: Dockerfile
-          username: ${{ secrets.GHCR_USERNAME }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
