@@ -1,0 +1,142 @@
+[
+    {
+        "ID": 49329,
+        "CardID": 3652982,
+        "Name": "Somebody Nobody",
+        "Status": "Allow IN[#1DOOR]",
+        "Time": 1687185360
+    },
+    {
+        "ID": 49328,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687184815
+    },
+    {
+        "ID": 49327,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687184484
+    },
+    {
+        "ID": 49326,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687183979
+    },
+    {
+        "ID": 49325,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687183660
+    },
+    {
+        "ID": 49324,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687183530
+    },
+    {
+        "ID": 49323,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687183501
+    },
+    {
+        "ID": 49322,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687183157
+    },
+    {
+        "ID": 49321,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687183053
+    },
+    {
+        "ID": 49320,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687182748
+    },
+    {
+        "ID": 49319,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687182667
+    },
+    {
+        "ID": 49318,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687182585
+    },
+    {
+        "ID": 49317,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687182022
+    },
+    {
+        "ID": 49316,
+        "CardID": 3652982,
+        "Name": "Somebody Nobody",
+        "Status": "Allow IN[#1DOOR]",
+        "Time": 1687180368
+    },
+    {
+        "ID": 49315,
+        "CardID": 3652982,
+        "Name": "Somebody Nobody",
+        "Status": "Allow IN[#1DOOR]",
+        "Time": 1687176714
+    },
+    {
+        "ID": 49314,
+        "CardID": 3652982,
+        "Name": "Somebody Nobody",
+        "Status": "Allow IN[#2DOOR]",
+        "Time": 1687167402
+    },
+    {
+        "ID": 49313,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687167170
+    },
+    {
+        "ID": 49312,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687166991
+    },
+    {
+        "ID": 49311,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687166959
+    },
+    {
+        "ID": 49310,
+        "CardID": 0,
+        "Name": " ",
+        "Status": "Reboot",
+        "Time": 1687166495
+    }
+]
