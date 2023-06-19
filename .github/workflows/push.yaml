@@ -1,13 +1,20 @@
-steps:
-  - uses: actions/checkout@v3
-    name: Check out code
+name: Release
+on: [push]
 
-  - uses: mr-smithers-excellent/docker-build-push@v6
-    name: Build and Push Image
-    with:
-      tags: latest
-      image: access-controller-controller
-      registry: ghcr.io
-      dockerfile: Dockerfile
-      username: ${{ secrets.GHCR_USERNAME }}
-      password: ${{ secrets.GHCR_TOKEN }}
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Check out code
+    
+      - uses: mr-smithers-excellent/docker-build-push@v6
+        name: Build and Push Image
+        with:
+          tags: latest
+          image: access-controller-controller
+          registry: ghcr.io
+          dockerfile: Dockerfile
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
