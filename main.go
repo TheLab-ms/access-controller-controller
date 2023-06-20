@@ -18,7 +18,7 @@ const migration = `
 CREATE TABLE IF NOT EXISTS swipes (
 	id integer PRIMARY KEY,
 	cardID integer NOT NULL,
-	time integer NOT NULL,
+	time timestamp NOT NULL,
 	name TEXT NOT NULL
 );
 

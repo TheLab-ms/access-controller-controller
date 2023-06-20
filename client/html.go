@@ -36,10 +36,7 @@ func parseSwipesListPage(r io.Reader) ([]*CardSwipe, error) {
 				case 3:
 					cardSwipe.Status = td.FirstChild.Data
 				case 4:
-					t, err := time.Parse("2006-01-02 15:04:05", td.FirstChild.Data)
-					if err == nil {
-						cardSwipe.Time = t.Unix()
-					}
+					cardSwipe.Time, err = time.Parse("2006-01-02 15:04:05", td.FirstChild.Data)
 				}
 				col++
 			}

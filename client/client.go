@@ -20,7 +20,7 @@ type CardSwipe struct {
 	CardID int
 	Name   string // name associated with the CardID
 	Status string // a string like "Allow IN[#2DOOR]"
-	Time   int64  // 0 if not able to parse, otherwise unix epoch seconds
+	Time   time.Time
 }
 
 type Client struct {
