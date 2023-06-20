@@ -3,11 +3,15 @@ package client
 import (
 	"errors"
 	"io"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/net/html"
 )
+
+var doorFromStatusRegex = regexp.MustCompile(`\[[^]]+\]`)
 
 func parseSwipesListPage(r io.Reader) ([]*CardSwipe, error) {
 	doc, err := html.Parse(r)
@@ -39,7 +43,16 @@ func parseSwipesListPage(r io.Reader) ([]*CardSwipe, error) {
 				case 2:
 					cardSwipe.Name = td.FirstChild.Data
 				case 3:
-					cardSwipe.Status = td.FirstChild.Data
+					if strings.Contains(td.FirstChild.Data, "Reboot") {
+						cardSwipe.ID = 0 // discard
+					}
+					if strings.Contains(td.FirstChild.Data, "Allow IN") {
+						cardSwipe.DoorID = doorFromStatusRegex.FindString(td.FirstChild.Data)
+						if cardSwipe.DoorID != "" {
+							// remove square braces
+							cardSwipe.DoorID = cardSwipe.DoorID[1 : len(cardSwipe.DoorID)-1]
+						}
+					}
 				case 4:
 					cardSwipe.Time, err = time.Parse("2006-01-02 15:04:05", td.FirstChild.Data)
 				}

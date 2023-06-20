@@ -1,142 +1,30 @@
 [
     {
         "ID": 49329,
-        "CardID": 3652982,
         "Name": "Somebody Nobody",
-        "Status": "Allow IN[#1DOOR]",
+        "CardID": 3652982,
+        "DoorID": "#1DOOR",
         "Time": "2023-06-19T14:36:00Z"
     },
     {
-        "ID": 49328,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T14:26:55Z"
-    },
-    {
-        "ID": 49327,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T14:21:24Z"
-    },
-    {
-        "ID": 49326,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T14:12:59Z"
-    },
-    {
-        "ID": 49325,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T14:07:40Z"
-    },
-    {
-        "ID": 49324,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T14:05:30Z"
-    },
-    {
-        "ID": 49323,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T14:05:01Z"
-    },
-    {
-        "ID": 49322,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T13:59:17Z"
-    },
-    {
-        "ID": 49321,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T13:57:33Z"
-    },
-    {
-        "ID": 49320,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T13:52:28Z"
-    },
-    {
-        "ID": 49319,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T13:51:07Z"
-    },
-    {
-        "ID": 49318,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T13:49:45Z"
-    },
-    {
-        "ID": 49317,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T13:40:22Z"
-    },
-    {
         "ID": 49316,
-        "CardID": 3652982,
         "Name": "Somebody Nobody",
-        "Status": "Allow IN[#1DOOR]",
+        "CardID": 3652982,
+        "DoorID": "#1DOOR",
         "Time": "2023-06-19T13:12:48Z"
     },
     {
         "ID": 49315,
-        "CardID": 3652982,
         "Name": "Somebody Nobody",
-        "Status": "Allow IN[#1DOOR]",
+        "CardID": 3652982,
+        "DoorID": "#1DOOR",
         "Time": "2023-06-19T12:11:54Z"
     },
     {
         "ID": 49314,
-        "CardID": 3652982,
         "Name": "Somebody Nobody",
-        "Status": "Allow IN[#2DOOR]",
+        "CardID": 3652982,
+        "DoorID": "#2DOOR",
         "Time": "2023-06-19T09:36:42Z"
-    },
-    {
-        "ID": 49313,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T09:32:50Z"
-    },
-    {
-        "ID": 49312,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T09:29:51Z"
-    },
-    {
-        "ID": 49311,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T09:29:19Z"
-    },
-    {
-        "ID": 49310,
-        "CardID": 0,
-        "Name": " ",
-        "Status": "Reboot",
-        "Time": "2023-06-19T09:21:35Z"
     }
 ]

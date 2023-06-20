@@ -16,10 +16,10 @@ import (
 )
 
 type CardSwipe struct {
-	ID     int // increments for each log entry
-	CardID int
+	ID     int    // increments for each log entry
 	Name   string // name associated with the CardID
-	Status string // a string like "Allow IN[#2DOOR]"
+	CardID int
+	DoorID string
 	Time   time.Time
 }
 

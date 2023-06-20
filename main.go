@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx"
@@ -16,10 +15,11 @@ import (
 
 const migration = `
 CREATE TABLE IF NOT EXISTS swipes (
-	id integer PRIMARY KEY,
-	cardID integer NOT NULL,
-	time timestamp NOT NULL,
-	name TEXT NOT NULL
+	id integer primary key,
+	cardID integer not null,
+	doorID text not null,
+	time timestamp not null,
+	name text not null
 );
 
 CREATE INDEX IF NOT EXISTS idx_swipes_cardID ON swipes (cardID);
@@ -109,16 +109,12 @@ func scrapeSwipes(ctx context.Context, cli *client.Client, db *pgx.Conn) error {
 	log.Printf("last known swipe event ID: %d", queryStart)
 
 	fn := func(swipe *client.CardSwipe) error {
-		if swipe.Status == "Reboot" || !strings.Contains(swipe.Status, "Allow IN") {
-			return nil // skip reboots and failed swipes
-		}
-
-		_, err := db.Exec("INSERT INTO swipes (id, cardID, time, name) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", swipe.ID, swipe.CardID, swipe.Time, swipe.Name)
+		_, err := db.Exec("INSERT INTO swipes (id, cardID, doorID, time, name) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING", swipe.ID, swipe.CardID, swipe.DoorID, swipe.Time, swipe.Name)
 		if err != nil {
 			return fmt.Errorf("inserting swipe %d into database: %s", swipe.ID, err)
 		}
 
-		log.Printf("inserted swipe event %d into database", swipe.ID)
+		log.Printf("inserted swipe event %d into database - card=%d door=%s time=%s", swipe.ID, swipe.CardID, swipe.DoorID, swipe.Time)
 		return nil
 	}
 
