@@ -53,9 +53,6 @@ func (c *Client) ListSwipes(ctx context.Context, earliestID int, fn func(*CardSw
 				return err
 			}
 		}
-		if len(page) < 20 {
-			return nil // reached the end
-		}
 		i++
 	}
 }
