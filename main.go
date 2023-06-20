@@ -99,11 +99,7 @@ func scrapeSwipes(ctx context.Context, cli *client.Client, db *pgx.Conn) error {
 
 	var queryStart int64
 	err := db.QueryRow("SELECT id FROM swipes ORDER BY id DESC LIMIT 1").Scan(&queryStart)
-	if errors.Is(err, pgx.ErrNoRows) {
-		queryStart = -1
-		err = nil
-	}
-	if err != nil {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return fmt.Errorf("finding cursor position: %s", err)
 	}
 	log.Printf("last known swipe event ID: %d", queryStart)
