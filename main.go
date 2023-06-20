@@ -33,6 +33,8 @@ type config struct {
 	PostgresHost     string `required:"true" split_words:"true"`
 	PostgresUser     string `default:"postgres" split_words:"true"`
 	PostgresPassword string `required:"true" split_words:"true"`
+
+	SwipeScrapeInterval time.Duration `default:"8h" split_words:"true"`
 }
 
 func main() {
@@ -61,7 +63,7 @@ func main() {
 		panic(err)
 	}
 
-	runLoop(time.Hour*8, func() bool {
+	runLoop(conf.SwipeScrapeInterval, func() bool {
 		err := scrapeSwipes(context.Background(), cli, db)
 		if err != nil {
 			log.Printf("error scraping swipe events: %s", err)
