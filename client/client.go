@@ -32,10 +32,10 @@ type Client struct {
 }
 
 // ListSwipes lists all card swipes going back to a particular swipe ID.
-// To travel all the way back to the beginning of the log, set earliestID to 0.
+// To travel all the way back to the beginning of the log, set earliestID to -1.
 func (c *Client) ListSwipes(ctx context.Context, earliestID int, fn func(*CardSwipe) error) error {
 	i := 0
-	latestID := 0
+	latestID := -1
 	for {
 		page, err := c.listSwipePage(ctx, latestID)
 		if err != nil {
@@ -61,11 +61,7 @@ func (c *Client) ListSwipes(ctx context.Context, earliestID int, fn func(*CardSw
 }
 
 func (c *Client) listSwipePage(ctx context.Context, earliestID int) ([]*CardSwipe, error) {
-	form := url.Values{}
-	form.Add("PC", strconv.Itoa(earliestID+19))
-	form.Add("PE", "0")
-	form.Add("PN", "Next")
-	req, err := http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_345", strings.NewReader(form.Encode()))
+	req, err := c.newListSwipePageRequest(earliestID)
 	if err != nil {
 		return nil, err
 	}
@@ -84,9 +80,20 @@ func (c *Client) listSwipePage(ctx context.Context, earliestID int) ([]*CardSwip
 	return parseSwipesListPage(resp.Body)
 }
 
-// doHTTP implements our own HTTP client that strictly reuses connections even when keepalives
-// are not properly signaled by the server. This prevents the access control server from rebooting
-// due to frequent connections.
+func (c *Client) newListSwipePageRequest(latestID int) (*http.Request, error) {
+	if latestID == -1 {
+		form := url.Values{}
+		form.Add("s4", "Swipe")
+		return http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_21", strings.NewReader(form.Encode()))
+	}
+
+	form := url.Values{}
+	form.Add("PC", strconv.Itoa(latestID+19))
+	form.Add("PE", "0")
+	form.Add("PN", "Next")
+	return http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_345", strings.NewReader(form.Encode()))
+}
+
 func (c *Client) doHTTP(req *http.Request) (resp *http.Response, err error) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
