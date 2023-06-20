@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -26,4 +27,9 @@ func TestParseSwipesListPage(t *testing.T) {
 	err = json.NewDecoder(expectedFixture).Decode(&expected)
 	require.NoError(t, err)
 	assert.Equal(t, expected, actual)
+}
+
+func TestParseSwipesNoTable(t *testing.T) {
+	_, err := parseSwipesListPage(bytes.NewBufferString("<body>foo</body>"))
+	require.EqualError(t, err, "no table found in access controller response")
 }

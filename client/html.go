@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"io"
 	"strconv"
 	"time"
@@ -15,8 +16,12 @@ func parseSwipesListPage(r io.Reader) ([]*CardSwipe, error) {
 	}
 
 	var cardSwipes []*CardSwipe
+	var foundTable bool
 	var traverse func(*html.Node)
 	traverse = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "table" {
+			foundTable = true
+		}
 		if n.Type == html.ElementNode && n.Data == "tr" {
 			cardSwipe := &CardSwipe{}
 
@@ -52,5 +57,8 @@ func parseSwipesListPage(r io.Reader) ([]*CardSwipe, error) {
 	}
 
 	traverse(doc)
+	if !foundTable {
+		return nil, errors.New("no table found in access controller response")
+	}
 	return cardSwipes, nil
 }
