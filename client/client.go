@@ -85,12 +85,16 @@ func (c *Client) RemoveCard(ctx context.Context, id int) error {
 	if err := c.login(ctx); err != nil {
 		return fmt.Errorf("logging in: %w", err)
 	}
+	if err := c.reset(ctx); err != nil {
+		return fmt.Errorf("resetting: %w", err)
+	}
 	if err := c.startRemoving(ctx, id); err != nil {
 		return fmt.Errorf("starting removal: %w", err)
 	}
 	if err := c.confirmRemoving(ctx, id); err != nil {
 		return fmt.Errorf("confirming removal: %w", err)
 	}
+
 	return nil
 }
 
@@ -113,7 +117,7 @@ func (c *Client) startRemoving(ctx context.Context, id int) error {
 	}
 
 	if !bytes.Contains(body, []byte("[User]->[Delete]")) {
-		return errors.New("unknown error response")
+		return fmt.Errorf("unknown error response: %s", body)
 	}
 
 	return nil
@@ -151,18 +155,9 @@ func (c *Client) ListCards(ctx context.Context) ([]*Card, error) {
 	if err := c.login(ctx); err != nil {
 		return nil, fmt.Errorf("logging in: %w", err)
 	}
-
-	req, err := http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_21", strings.NewReader("s2=Users"))
-	if err != nil {
-		return nil, err
+	if err := c.reset(ctx); err != nil {
+		return nil, fmt.Errorf("resetting: %w", err)
 	}
-
-	resp, err := c.doHTTP(req)
-	if err != nil {
-		return nil, err
-	}
-	io.Copy(io.Discard, resp.Body)
-	resp.Body.Close()
 
 	startID := -19
 	all := []*Card{}
@@ -290,6 +285,21 @@ func (c *Client) login(ctx context.Context) error {
 	}
 
 	return errors.New("unknown error")
+}
+
+func (c *Client) reset(ctx context.Context) error {
+	req, err := http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_21", strings.NewReader("s2=Users"))
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.doHTTP(req)
+	if err != nil {
+		return err
+	}
+	io.Copy(io.Discard, resp.Body)
+	resp.Body.Close()
+	return nil
 }
 
 func (c *Client) doHTTP(req *http.Request) (resp *http.Response, err error) {
