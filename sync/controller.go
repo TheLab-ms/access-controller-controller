@@ -43,7 +43,7 @@ func NewController(c *conf.Env, cli *client.Client) *Controller {
 	return ctrl
 }
 
-func (c *Controller) HandleHTTP(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(r.URL.Path, "/webhooks") {
 		return
 	}

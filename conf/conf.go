@@ -20,6 +20,7 @@ type Env struct {
 
 	ResyncInterval time.Duration `default:"1h" split_words:"true"`
 	CallbackURL    string        `split_words:"true"`
+	WebhookAddr    string        `split_words:"true"`
 
 	SwipeScrapeInterval time.Duration `default:"8h" split_words:"true"`
 }

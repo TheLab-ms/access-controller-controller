@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -35,6 +36,14 @@ func main() {
 			if err != nil {
 				log.Fatalf("error while ensuring webhook resource exists: %s", err)
 			}
+		}
+
+		if conf.WebhookAddr != "" {
+			go func() {
+				if err := http.ListenAndServe(conf.WebhookAddr, c); err != nil {
+					log.Fatalf("error while starting webhook listener: %s", err)
+				}
+			}()
 		}
 
 		c.Run(ctx)
