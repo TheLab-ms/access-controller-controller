@@ -79,8 +79,6 @@ func (c *Client) AddCard(ctx context.Context, num int, name string) error {
 }
 
 func (c *Client) RemoveCard(ctx context.Context, id int) error {
-	return nil // TODO
-
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
