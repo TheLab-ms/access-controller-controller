@@ -44,9 +44,10 @@ func NewController(c *conf.Env, cli *client.Client) *Controller {
 }
 
 func (c *Controller) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !strings.HasPrefix(r.URL.Path, "/webhooks") {
+	if !strings.HasPrefix(r.URL.Path, "/webhook") {
 		return
 	}
+	log.Printf("received webhook")
 	select {
 	case c.trigger <- struct{}{}:
 	default:
