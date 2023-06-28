@@ -2,7 +2,9 @@ package client
 
 import (
 	"bufio"
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -15,12 +17,20 @@ import (
 	"time"
 )
 
+var ErrCardIDConflict = errors.New("badge ID already in use")
+
 type CardSwipe struct {
 	ID     int    // increments for each log entry
 	Name   string // name associated with the CardID
 	CardID int
 	DoorID string
 	Time   time.Time
+}
+
+type Card struct {
+	ID     int    // assigned when adding
+	Number int    // encoded on the fob
+	Name   string // 32 char opaque(?) string
 }
 
 type Client struct {
@@ -31,15 +41,185 @@ type Client struct {
 	conn net.Conn
 }
 
+func (c *Client) AddCard(ctx context.Context, num int, name string) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	if err := c.login(ctx); err != nil {
+		return fmt.Errorf("logging in: %w", err)
+	}
+
+	// we cannot use url.Values here because order is important to the server for some reason
+	q := fmt.Sprintf("AD21=%d&AD22=%s&25=Add", num, name)
+
+	req, err := http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_312", strings.NewReader(q))
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.doHTTP(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	switch {
+	case bytes.Contains(body, []byte("Add Successfully")):
+		return nil
+	case bytes.Contains(body, []byte("already used!")):
+		return ErrCardIDConflict
+	default:
+		return fmt.Errorf("unknown error response: %s", body)
+	}
+}
+
+func (c *Client) RemoveCard(ctx context.Context, id int) error {
+	return nil // TODO
+
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	if err := c.login(ctx); err != nil {
+		return fmt.Errorf("logging in: %w", err)
+	}
+	if err := c.startRemoving(ctx, id); err != nil {
+		return fmt.Errorf("starting removal: %w", err)
+	}
+	if err := c.confirmRemoving(ctx, id); err != nil {
+		return fmt.Errorf("confirming removal: %w", err)
+	}
+	return nil
+}
+
+func (c *Client) startRemoving(ctx context.Context, id int) error {
+	q := fmt.Sprintf("D%d=Delete", id-1)
+	req, err := http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_324", strings.NewReader(q))
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.doHTTP(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Contains(body, []byte("[User]->[Delete]")) {
+		return errors.New("unknown error response")
+	}
+
+	return nil
+}
+
+func (c *Client) confirmRemoving(ctx context.Context, id int) error {
+	q := fmt.Sprintf("X%d=OK", id-1)
+	req, err := http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_324", strings.NewReader(q))
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.doHTTP(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Contains(body, []byte("user is deleted")) {
+		return errors.New("unknown error response")
+	}
+
+	return nil
+}
+
+func (c *Client) ListCards(ctx context.Context) ([]*Card, error) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	if err := c.login(ctx); err != nil {
+		return nil, fmt.Errorf("logging in: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_21", strings.NewReader("s2=Users"))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.doHTTP(req)
+	if err != nil {
+		return nil, err
+	}
+	io.Copy(io.Discard, resp.Body)
+	resp.Body.Close()
+
+	startID := -19
+	all := []*Card{}
+	for {
+		cards, err := c.listCardPage(ctx, startID)
+		if err != nil {
+			return nil, err
+		}
+		if len(cards) == 0 {
+			return all, nil
+		}
+		all = append(all, cards...)
+		startID += 20
+	}
+}
+
+func (c *Client) listCardPage(ctx context.Context, startID int) ([]*Card, error) {
+	form := url.Values{}
+
+	if startID == -19 {
+		form.Add("PC", "00061")
+		form.Add("PE", "00080")
+		form.Add("PF", "First")
+	} else {
+		form.Add("PC", fmt.Sprintf("%05d", startID))
+		form.Add("PE", fmt.Sprintf("%05d", startID+19))
+		form.Add("PN", "Next")
+	}
+
+	req, err := http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_325", strings.NewReader(form.Encode()))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.doHTTP(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return parseCardsList(resp.Body)
+}
+
 // ListSwipes lists all card swipes going back to a particular swipe ID.
 // To travel all the way back to the beginning of the log, set earliestID to -1.
 func (c *Client) ListSwipes(ctx context.Context, earliestID int, fn func(*CardSwipe) error) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
 	i := 0
 	latestID := -1
 	for {
 		page, err := c.listSwipePage(ctx, latestID)
 		if err != nil {
-			return fmt.Errorf("getting page %d: %w", i, err)
+			return err
 		}
 
 		for i, item := range page {
@@ -69,12 +249,7 @@ func (c *Client) listSwipePage(ctx context.Context, earliestID int) ([]*CardSwip
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("unexpected response status: %d with body: %s", resp.StatusCode, body)
-	}
-
-	return parseSwipesListPage(resp.Body)
+	return parseSwipesList(resp.Body)
 }
 
 func (c *Client) newListSwipePageRequest(latestID int) (*http.Request, error) {
@@ -91,10 +266,35 @@ func (c *Client) newListSwipePageRequest(latestID int) (*http.Request, error) {
 	return http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_345", strings.NewReader(form.Encode()))
 }
 
-func (c *Client) doHTTP(req *http.Request) (resp *http.Response, err error) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
+func (c *Client) login(ctx context.Context) error {
+	// this controller is so insecure I have no concern about committing its "password" here.
+	// most endpoints don't even require it, those that do are open for a window of time after password is sent - no cookie/token/etc needed.
+	q := "username=abc&pwd=654321&logId=20101222"
 
+	req, err := http.NewRequest("POST", "http://"+c.Addr+"/ACT_ID_1", strings.NewReader(q))
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.doHTTP(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if bytes.Contains(body, []byte("Remote Open")) {
+		return nil // returned the home page
+	}
+
+	return errors.New("unknown error")
+}
+
+func (c *Client) doHTTP(req *http.Request) (resp *http.Response, err error) {
 	if c.conn == nil {
 		log.Printf("establishing new connection to the access control server")
 		c.conn, err = net.DialTimeout("tcp", c.Addr, c.Timeout)
@@ -114,7 +314,14 @@ func (c *Client) doHTTP(req *http.Request) (resp *http.Response, err error) {
 	resp, err = http.ReadResponse(bufio.NewReader(c.conn), req)
 	if err != nil {
 		c.conn = nil
+		return nil, err
 	}
 
-	return resp, err
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		return nil, fmt.Errorf("unexpected response status: %d with body: %s", resp.StatusCode, body)
+	}
+
+	return resp, nil
 }

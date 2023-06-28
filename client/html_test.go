@@ -11,15 +11,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseSwipesListPage(t *testing.T) {
-	responseFixture, err := os.Open(filepath.Join("fixtures", "response.html"))
+func TestParseSwipesList(t *testing.T) {
+	responseFixture, err := os.Open(filepath.Join("fixtures", "swipes", "response.html"))
 	require.NoError(t, err)
 	defer responseFixture.Close()
 
-	actual, err := parseSwipesListPage(responseFixture)
+	actual, err := parseSwipesList(responseFixture)
 	require.NoError(t, err)
 
-	expectedFixture, err := os.Open(filepath.Join("fixtures", "expected.json"))
+	expectedFixture, err := os.Open(filepath.Join("fixtures", "swipes", "expected.json"))
 	require.NoError(t, err)
 	defer expectedFixture.Close()
 
@@ -30,6 +30,24 @@ func TestParseSwipesListPage(t *testing.T) {
 }
 
 func TestParseSwipesNoTable(t *testing.T) {
-	_, err := parseSwipesListPage(bytes.NewBufferString("<body>foo</body>"))
+	_, err := parseSwipesList(bytes.NewBufferString("<body>foo</body>"))
 	require.EqualError(t, err, "no table found in access controller response")
+}
+
+func TestParseCardsList(t *testing.T) {
+	responseFixture, err := os.Open(filepath.Join("fixtures", "cards", "response.html"))
+	require.NoError(t, err)
+	defer responseFixture.Close()
+
+	actual, err := parseCardsList(responseFixture)
+	require.NoError(t, err)
+
+	expectedFixture, err := os.Open(filepath.Join("fixtures", "cards", "expected.json"))
+	require.NoError(t, err)
+	defer expectedFixture.Close()
+
+	expected := []*Card{}
+	err = json.NewDecoder(expectedFixture).Decode(&expected)
+	require.NoError(t, err)
+	assert.Equal(t, expected, actual)
 }
