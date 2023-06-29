@@ -22,5 +22,5 @@ type Env struct {
 	CallbackURL    string        `split_words:"true"`
 	WebhookAddr    string        `split_words:"true"`
 
-	SwipeScrapeInterval time.Duration `default:"8h" split_words:"true"`
+	SwipeScrapeInterval time.Duration `default:"2h" split_words:"true"`
 }
