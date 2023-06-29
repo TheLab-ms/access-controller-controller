@@ -46,7 +46,7 @@ func main() {
 			}()
 		}
 
-		c.Run(ctx)
+		go c.Run(ctx)
 	}
 
 	// Scrape badge swipes to the reporting database if configured
