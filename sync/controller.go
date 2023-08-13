@@ -2,6 +2,7 @@ package sync
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -44,6 +45,18 @@ func NewController(c *conf.Env, cli *client.Client) *Controller {
 }
 
 func (c *Controller) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Provide a super secret debug endpoint for listing the current cards
+	if r.URL.Path == "/cards" {
+		log.Printf("received list cards request")
+		cards, err := c.controller.ListCards(r.Context())
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		json.NewEncoder(w).Encode(&cards)
+		return
+	}
+
 	if !strings.HasPrefix(r.URL.Path, "/webhook") {
 		return
 	}
