@@ -90,12 +90,13 @@ func (c *Controller) Run(ctx context.Context) {
 		changed, err := c.sync(ctx)
 		if err != nil {
 			log.Printf("sync error: %s", err)
-		}
-
-		if !changed && err == nil {
+		} else {
 			lastRetry = 0
-			time.Sleep(time.Second * 5) // cooldown
-			continue
+
+			if !changed {
+				time.Sleep(time.Second * 5) // cooldown
+				continue
+			}
 		}
 
 		if lastRetry == 0 {
