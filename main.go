@@ -9,6 +9,7 @@ import (
 
 	"github.com/TheLab-ms/access-controller-controller/client"
 	"github.com/TheLab-ms/access-controller-controller/conf"
+	"github.com/TheLab-ms/access-controller-controller/keycloak"
 	"github.com/TheLab-ms/access-controller-controller/reporting"
 	"github.com/TheLab-ms/access-controller-controller/sync"
 )
@@ -26,10 +27,12 @@ func main() {
 	}
 
 	// Sync badge access from keycloak if configured
+	var kc *keycloak.Keycloak
 	if conf.KeycloakURL == "" {
 		log.Printf("disabling keyvault sync because keycloak URL is not set")
 	} else {
-		c := sync.NewController(conf, cli)
+		kc = keycloak.New(conf)
+		c := sync.NewController(conf, cli, kc)
 
 		if conf.CallbackURL != "" {
 			err := c.EnsureWebhook(ctx)
@@ -53,7 +56,7 @@ func main() {
 	if conf.SwipeScrapeInterval == 0 {
 		log.Printf("disabling reporting controller because swipe scrape interval is zero")
 	} else {
-		ctrl, err := reporting.NewController(conf, cli)
+		ctrl, err := reporting.NewController(conf, cli, kc)
 		if err != nil {
 			log.Fatalf("error while configuring reporting controller: %s", err)
 		}

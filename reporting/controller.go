@@ -11,6 +11,7 @@ import (
 
 	"github.com/TheLab-ms/access-controller-controller/client"
 	"github.com/TheLab-ms/access-controller-controller/conf"
+	"github.com/TheLab-ms/access-controller-controller/keycloak"
 )
 
 const migration = `
@@ -29,10 +30,11 @@ CREATE INDEX IF NOT EXISTS idx_swipes_time ON swipes (time);
 type Controller struct {
 	db                  *pgx.Conn
 	client              *client.Client
+	keycloak            *keycloak.Keycloak
 	swipeScrapeInterval time.Duration
 }
 
-func NewController(env *conf.Env, ac *client.Client) (*Controller, error) {
+func NewController(env *conf.Env, ac *client.Client, kc *keycloak.Keycloak) (*Controller, error) {
 	db, err := pgx.Connect(pgx.ConnConfig{
 		Host:     env.PostgresHost,
 		User:     env.PostgresUser,
@@ -50,6 +52,7 @@ func NewController(env *conf.Env, ac *client.Client) (*Controller, error) {
 	return &Controller{
 		db:                  db,
 		client:              ac,
+		keycloak:            kc,
 		swipeScrapeInterval: env.SwipeScrapeInterval,
 	}, nil
 }
@@ -80,8 +83,19 @@ func (c *Controller) scrape(ctx context.Context) error {
 	}
 	log.Printf("last known swipe event ID: %d", queryStart)
 
+	usersByUUID := map[string]*keycloak.AccessUser{}
+	if c.keycloak != nil {
+		allUsers, err := c.keycloak.ListUsers(ctx)
+		if err != nil {
+			return fmt.Errorf("listing users from Keycloak: %w", err)
+		}
+		for _, user := range allUsers {
+			usersByUUID[user.UUID] = user
+		}
+	}
+
 	fn := func(swipe *client.CardSwipe) error {
-		_, err := c.db.Exec("INSERT INTO swipes (id, cardID, doorID, time, name) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING", swipe.ID, swipe.CardID, swipe.DoorID, swipe.Time, swipe.Name)
+		_, err := c.db.Exec("INSERT INTO swipes (id, cardID, doorID, time, name) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING", swipe.ID, swipe.CardID, swipe.DoorID, swipe.Time, usersByUUID[swipe.Name])
 		if err != nil {
 			return fmt.Errorf("inserting swipe %d into database: %s", swipe.ID, err)
 		}
