@@ -33,10 +33,10 @@ type Controller struct {
 	trigger    chan struct{}
 }
 
-func NewController(c *conf.Env, cli *client.Client) *Controller {
+func NewController(c *conf.Env, cli *client.Client, kc *keycloak.Keycloak) *Controller {
 	ctrl := &Controller{
 		controller: cli,
-		storage:    keycloak.New(c),
+		storage:    kc,
 		conf:       c,
 		trigger:    make(chan struct{}, 1),
 	}
