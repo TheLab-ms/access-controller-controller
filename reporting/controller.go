@@ -95,7 +95,14 @@ func (c *Controller) scrape(ctx context.Context) error {
 	}
 
 	fn := func(swipe *client.CardSwipe) error {
-		_, err := c.db.Exec("INSERT INTO swipes (id, cardID, doorID, time, name) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING", swipe.ID, swipe.CardID, swipe.DoorID, swipe.Time, usersByUUID[swipe.Name])
+		var name string
+		if user := usersByUUID[swipe.Name]; user != nil {
+			name = user.Name
+		} else {
+			name = swipe.Name // fall back to UUID
+		}
+
+		_, err := c.db.Exec("INSERT INTO swipes (id, cardID, doorID, time, name) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING", swipe.ID, swipe.CardID, swipe.DoorID, swipe.Time, name)
 		if err != nil {
 			return fmt.Errorf("inserting swipe %d into database: %s", swipe.ID, err)
 		}

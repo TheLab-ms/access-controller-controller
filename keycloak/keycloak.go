@@ -129,7 +129,7 @@ func (k *Keycloak) ensureToken(ctx context.Context) (*gocloak.JWT, error) {
 }
 
 type AccessUser struct {
-	UUID         string
+	UUID, Name   string
 	KeyfobNumber int
 }
 
@@ -146,6 +146,7 @@ func newAccessUser(kcuser *gocloak.User) *AccessUser {
 
 	return &AccessUser{
 		UUID:         *kcuser.ID,
+		Name:         fmt.Sprintf("%s %s", gocloak.PString(kcuser.FirstName), gocloak.PString(kcuser.LastName)),
 		KeyfobNumber: fobID,
 	}
 }
