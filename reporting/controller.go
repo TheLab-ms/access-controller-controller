@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx"
@@ -90,7 +91,8 @@ func (c *Controller) scrape(ctx context.Context) error {
 			return fmt.Errorf("listing users from Keycloak: %w", err)
 		}
 		for _, user := range allUsers {
-			usersByUUID[user.UUID] = user
+			uuid := strings.ReplaceAll(user.UUID, "-", "") // remove dashes since we don't store them in access controller
+			usersByUUID[uuid] = user
 		}
 	}
 
