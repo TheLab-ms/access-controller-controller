@@ -143,6 +143,9 @@ func newAccessUser(kcuser *gocloak.User) *AccessUser {
 	if fobID == 0 {
 		return nil
 	}
+	if firstElOrZeroVal(attr["buildingAccessApprover"]) == "" {
+		return nil // no access for accounts that haven't explicitly been granted building access
+	}
 
 	return &AccessUser{
 		UUID:         *kcuser.ID,
