@@ -13,8 +13,6 @@ type Env struct {
 	PostgresPassword string `split_words:"true"`
 
 	KeycloakURL       string `split_words:"true"`
-	KeycloakUser      string `split_words:"true"`
-	KeycloakPassword  string `split_words:"true"`
 	KeycloakRealm     string `default:"master" split_words:"true"`
 	AuthorizedGroupID string `split_words:"true"`
 

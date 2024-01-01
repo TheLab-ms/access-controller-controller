@@ -21,12 +21,13 @@ Provide configuration in environment variables:
 
 - `ACCESS_CONTROL_HOST`: hostname:port of the access controller's web interface
 - `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Postgres configuration for fob swipe reporting
-- `KEYCLOAK_URL`, `KEYCLOAK_USER`, `KEYCLOAK_PASSWORD`, `KEYCLOAK_REALM`: Keycloak connection info
+- `KEYCLOAK_URL`, `KEYCLOAK_REALM`: Keycloak connection info
 - `AUTHORIZED_GROUP_ID`: the UUID of the Keycloak group that should be granted building access
 - `WEBHOOK_ADDR`: Address to serve the Keycloak webhook server on
 - `CALLBACK_URL`: The URL that Keycloak should use when sending webhooks
 
 All configuration is optional. Omitting a value will disable the corresponding functionality.
+Assumes Keycloak client credentials are provided using [keycloak-k8s-shim](https://github.com/jveski/keycloak-k8s-shim).
 
 
 ### Keycloak Webhooks

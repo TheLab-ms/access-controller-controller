@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -14,9 +15,8 @@ import (
 )
 
 type Keycloak struct {
-	client            *gocloak.GoCloak
-	user, pass, realm string
-	baseURL, groupID  string
+	client                  *gocloak.GoCloak
+	realm, baseURL, groupID string
 
 	// use ensureToken to access these
 	tokenLock      sync.Mutex
@@ -25,7 +25,7 @@ type Keycloak struct {
 }
 
 func New(c *conf.Env) *Keycloak {
-	return &Keycloak{client: gocloak.NewClient(c.KeycloakURL), user: c.KeycloakUser, pass: c.KeycloakPassword, realm: c.KeycloakRealm, baseURL: c.KeycloakURL, groupID: c.AuthorizedGroupID}
+	return &Keycloak{client: gocloak.NewClient(c.KeycloakURL), realm: c.KeycloakRealm, baseURL: c.KeycloakURL, groupID: c.AuthorizedGroupID}
 }
 
 func (k *Keycloak) ListUsers(ctx context.Context) ([]*AccessUser, error) {
@@ -117,7 +117,16 @@ func (k *Keycloak) ensureToken(ctx context.Context) (*gocloak.JWT, error) {
 		return k.token, nil
 	}
 
-	token, err := k.client.LoginAdmin(ctx, k.user, k.pass, k.realm)
+	clientID, err := os.ReadFile("/var/lib/keycloak/client-id")
+	if err != nil {
+		return nil, fmt.Errorf("reading client id: %w", err)
+	}
+	clientSecret, err := os.ReadFile("/var/lib/keycloak/client-secret")
+	if err != nil {
+		return nil, fmt.Errorf("reading client secret: %w", err)
+	}
+
+	token, err := k.client.LoginClient(ctx, string(clientID), string(clientSecret), k.realm)
 	if err != nil {
 		return nil, err
 	}
