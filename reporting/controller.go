@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS swipes (
 	name text not null
 );
 
+ALTER TABLE swipes ADD COLUMN IF NOT EXISTS seenAt timestamp;
+
 CREATE INDEX IF NOT EXISTS idx_swipes_cardID ON swipes (cardID);
 CREATE INDEX IF NOT EXISTS idx_swipes_time ON swipes (time);
 `
@@ -101,7 +103,7 @@ func (c *Controller) scrape(ctx context.Context) error {
 			name = swipe.Name // fall back to UUID
 		}
 
-		_, err := c.db.Exec(ctx, "INSERT INTO swipes (id, cardID, doorID, time, name) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING", swipe.ID, swipe.CardID, swipe.DoorID, swipe.Time, name)
+		_, err := c.db.Exec(ctx, "INSERT INTO swipes (id, cardID, doorID, time, name, seenAt) VALUES ($1, $2, $3, $4, $5, NOW()) ON CONFLICT DO NOTHING", swipe.ID, swipe.CardID, swipe.DoorID, swipe.Time, name)
 		if err != nil {
 			return fmt.Errorf("inserting swipe %d into database: %s", swipe.ID, err)
 		}
