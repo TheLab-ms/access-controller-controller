@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/TheLab-ms/access-controller-controller/client"
@@ -27,6 +28,8 @@ type userStorage interface {
 }
 
 type Controller struct {
+	LastSync atomic.Pointer[time.Time]
+
 	controller accessController
 	storage    userStorage
 	conf       *conf.Env
@@ -88,6 +91,8 @@ func (c *Controller) Run(ctx context.Context) {
 
 	start:
 		changed, err := c.sync(ctx)
+		now := time.Now()
+		c.LastSync.Store(&now)
 		if err != nil {
 			log.Printf("sync error: %s", err)
 		} else {

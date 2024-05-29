@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"sync/atomic"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -25,6 +27,7 @@ func main() {
 		Addr:    conf.AccessControlHost,
 		Timeout: conf.AccessControlTimeout,
 	}
+	probe := &livenessProbe{}
 
 	// Sync badge access from keycloak if configured
 	var kc *keycloak.Keycloak
@@ -49,6 +52,7 @@ func main() {
 			}()
 		}
 
+		probe.Add(&c.LastSync)
 		go c.Run(ctx)
 	}
 
@@ -60,8 +64,32 @@ func main() {
 		if err != nil {
 			log.Fatalf("error while configuring reporting controller: %s", err)
 		}
+		probe.Add(&ctrl.LastSync)
 		go ctrl.Run(ctx)
 	}
 
 	<-ctx.Done() // sleep forever while things run in other goroutines
+}
+
+// This is a very crude probe to kick the process if the loops get stuck for some reason.
+type livenessProbe struct {
+	checks []*atomic.Pointer[time.Time]
+}
+
+func (l *livenessProbe) Add(ptr *atomic.Pointer[time.Time]) { l.checks = append(l.checks, ptr) }
+
+func (l *livenessProbe) HandleHTTP(w http.ResponseWriter, r *http.Request) {
+	var mostRecent time.Time
+	for _, check := range l.checks {
+		ts := check.Load()
+		if ts != nil && ts.After(mostRecent) {
+			mostRecent = *ts
+		}
+	}
+
+	if time.Since(mostRecent) > time.Minute*2 {
+		log.Printf("failing liveness probe!")
+		w.WriteHeader(500)
+	}
+	w.WriteHeader(200)
 }

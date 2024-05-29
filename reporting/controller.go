@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/jackc/pgx"
@@ -32,6 +33,8 @@ CREATE INDEX IF NOT EXISTS idx_swipes_time ON swipes (time);
 `
 
 type Controller struct {
+	LastSync atomic.Pointer[time.Time]
+
 	db                  *pgxpool.Pool
 	client              *client.Client
 	keycloak            *keycloak.Keycloak
@@ -63,6 +66,8 @@ func (c *Controller) Run(ctx context.Context) {
 		if err != nil {
 			log.Printf("error scraping swipe events: %s", err)
 		}
+		now := time.Now()
+		c.LastSync.Store(&now)
 		return err == nil
 	})
 }
