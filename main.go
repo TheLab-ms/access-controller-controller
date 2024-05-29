@@ -68,6 +68,12 @@ func main() {
 		go ctrl.Run(ctx)
 	}
 
+	if conf.ProbeAddr != "" {
+		go func() {
+			http.ListenAndServe(conf.ProbeAddr, probe)
+		}()
+	}
+
 	<-ctx.Done() // sleep forever while things run in other goroutines
 }
 
@@ -78,7 +84,7 @@ type livenessProbe struct {
 
 func (l *livenessProbe) Add(ptr *atomic.Pointer[time.Time]) { l.checks = append(l.checks, ptr) }
 
-func (l *livenessProbe) HandleHTTP(w http.ResponseWriter, r *http.Request) {
+func (l *livenessProbe) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var mostRecent time.Time
 	for _, check := range l.checks {
 		ts := check.Load()
